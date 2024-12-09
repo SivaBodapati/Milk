@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bodapati's Organic Milk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: #f6f8fb;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #ff5678;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+        .sidebar a {
+            color: #fff;
+            text-decoration: none;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .content h2 {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .entries {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .entries table {
+            width: 100%;
+            margin-top: 15px;
+        }
+        .entries table th, .entries table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .entries .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .alert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 300px;
+        }
+        .calculate-btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">Bodapati's</div>
+            <a href="#" onclick="showHome()"><i class="fas fa-home"></i> Home</a>
+            <a href="#" onclick="showData()"><i class="fas fa-database"></i> Data</a>
+            <a href="#" onclick="showSpecificData()"><i class="fas fa-search"></i> View Number Data</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2 id="pageTitle">Bodapati's Organic Milk</h2>
+
+            <!-- Success Message Alert -->
+            <div class="alert alert-success" id="successAlert" role="alert">
+                Entry added successfully!
+            </div>
+
+            <!-- Data Entry Form -->
+            <div class="form-container" id="dataEntryForm">
+                <form id="dataForm">
+                    <div class="mb-3">
+                        <label for="number" class="form-label">Number:</label>
+                        <input type="text" class="form-control" id="number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="liters" class="form-label">Liters:</label>
+                        <input type="number" class="form-control" id="liters" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fat" class="form-label">Fat:</label>
+                        <input type="number" class="form-control" id="fat" step="0.01" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addEntry()">Add Entry</button>
+                </form>
+            </div>
+
+            <!-- Entries Table -->
+            <div class="entries" id="entriesSection" style="display: none;">
+                <h3>Entries</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>AM/PM</th>
+                            <th>Number</th>
+                            <th>Liters</th>
+                            <th>Fat</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Specific Data Search -->
+            <div class="form-container" id="specificDataForm" style="display: none;">
+                <h3>View Number Data</h3>
+                <div class="mb-3">
+                    <label for="specificNumber" class="form-label">Number:</label>
+                    <input type="text" class="form-control" id="specificNumber">
+                </div>
+                <div class="mb-3">
+                    <label for="amPmFilter" class="form-label">AM/PM:</label>
+                    <select class="form-select" id="amPmFilter">
+                        <option value="">All</option>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="fromDate" class="form-label">From Date:</label>
+                    <input type="date" class="form-control" id="fromDate">
+                </div>
+                <div class="mb-3">
+                    <label for="toDate" class="form-label">To Date:</label>
+                    <input type="date" class="form-control" id="toDate">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="filterData()">Search</button>
+
+                <div id="specificDataResults"></div>
+                <div class="calculate-btn-container">
+                    <button type="button" class="btn btn-success mt-3" id="totalAmountButton" style="display: none;" onclick="calculateTotalAmount()">Calculate Total Amount</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dataEntries = JSON.parse(localStorage.getItem("dataEntries")) || [];
+        const tableBody = document.getElementById("tableBody");
+        const successAlert = document.getElementById("successAlert");
+        let filteredResults = [];
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function getAmPm(date) {
+            return date.getHours() >= 12 ? 'PM' : 'AM';
+        }
+
+        function addEntry() {
+            const number = document.getElementById("number").value;
+            const liters = parseFloat(document.getElementById("liters").value);
+            const fat = parseFloat(document.getElementById("fat").value);
+            const amount = Math.floor(liters * fat * 80 / 10);
+
+            const date = new Date();
+            const entry = {
+                date: formatDate(date),
+                amPm: getAmPm(date),
+                number,
+                liters,
+                fat,
+                amount
+            };
+
+            dataEntries.push(entry);
+            localStorage.setItem("dataEntries", JSON.stringify(dataEntries));
+
+            document.getElementById("dataForm").reset();
+            appendRow(entry);
+            successAlert.style.display = "block";
+            setTimeout(() => successAlert.style.display = "none", 3000);
+        }
+
+        function appendRow(entry) {
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = entry.date;
+            row.insertCell(1).textContent = entry.amPm;
+            row.insertCell(2).textContent = entry.number;
+            row.insertCell(3).textContent = entry.liters;
+            row.insertCell(4).textContent = entry.fat;
+            row.insertCell(5).textContent = entry.amount;
+        }
+
+        function filterData() {
+            const specificNumber = document.getElementById("specificNumber").value;
+            const amPm = document.getElementById("amPmFilter").value;
+            const fromDate = new Date(document.getElementById("fromDate").value);
+            const toDate = new Date(document.getElementById("toDate").value);
+
+            filteredResults = dataEntries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                const matchesNumber = !specificNumber || entry.number === specificNumber;
+                const matchesAmPm = !amPm || entry.amPm === amPm;
+                const matchesDate = (!isNaN(fromDate) && !isNaN(toDate)) ?
+                    (entryDate >= fromDate && entryDate <= toDate) : true;
+
+                return matchesNumber && matchesAmPm && matchesDate;
+            });
+
+            displayResults();
+        }
+
+        function displayResults() {
+            const resultsContainer = document.getElementById("specificDataResults");
+            resultsContainer.innerHTML = "";
+
+            if (filteredResults.length === 0) {
+                resultsContainer.innerHTML = "<p>No entries found for this number and date range.</p>";
+                document.getElementById("totalAmountButton").style.display = "none";
+                return;
+            }
+
+            const table = document.createElement("table");
+            table.className = "table table-striped mt-3";
+            table.innerHTML = `<thead>
+                <tr>
+                    <th>Date</th>
+                    <th>AM/PM</th>
+                    <th>Number</th>
+                    <th>Liters</th>
+                    <th>Fat</th>
+                    <th>Amount</th>
+                </tr>
+            </thead><tbody></tbody>`;
+
+            const tbody = table.querySelector("tbody");
+            filteredResults.forEach(entry => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = entry.date;
+                row.insertCell(1).textContent = entry.amPm;
+                row.insertCell(2).textContent = entry.number;
+                row.insertCell(3).textContent = entry.liters;
+                row.insertCell(4).textContent = entry.fat;
+                row.insertCell(5).textContent = entry.amount;
+            });
+
+            resultsContainer.appendChild(table);
+            document.getElementById("totalAmountButton").style.display = "block";
+        }
+
+        function calculateTotalAmount() {
+            const total = filteredResults.reduce((sum, entry) => sum + entry.amount, 0);
+            alert(`Total Amount: ₹${total}`);
+        }
+
+        function showHome() {
+            document.getElementById("dataEntryForm").style.display = "block";
+            document.getElementById("specificDataForm").style.display = "none";
+            document.getElementById("entriesSection").style.display = "none";
+        }
+
+        function showData() {
+            document.getElementById("dataEntryForm").style.display = "none";
+            document.getElementById("specificDataForm").style.display = "none";
+            document.getElementById("entriesSection").style.display = "block";
+
+            tableBody.innerHTML = "";
+            dataEntries.forEach(appendRow);
+        }
+
+        function showSpecificData() {
+            document.getElementById("dataEntryForm").style.display = "none";
+            document.getElementById("entriesSection").style.display = "none";
+            document.getElementById("specificDataForm").style.display = "block";
+        }
+            // Add Edit and Delete buttons to the table row
+    function appendRow(entry, index) {
+        const row = tableBody.insertRow();
+        row.insertCell(0).textContent = entry.date;
+        row.insertCell(1).textContent = entry.amPm;
+        row.insertCell(2).textContent = entry.number;
+        row.insertCell(3).textContent = entry.liters;
+        row.insertCell(4).textContent = entry.fat;
+        row.insertCell(5).textContent = entry.amount;
+
+        // Edit Button
+        const editCell = row.insertCell(6);
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.className = "btn btn-warning btn-sm";
+        editButton.onclick = () => editEntry(index);
+        editCell.appendChild(editButton);
+
+        // Delete Button
+        const deleteCell = row.insertCell(7);
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "btn btn-danger btn-sm";
+        deleteButton.onclick = () => deleteEntry(index);
+        deleteCell.appendChild(deleteButton);
+    }
+
+    // Edit entry logic
+    function editEntry(index) {
+        const entry = dataEntries[index];
+        document.getElementById("number").value = entry.number;
+        document.getElementById("liters").value = entry.liters;
+        document.getElementById("fat").value = entry.fat;
+
+        // Show the form and scroll to it
+        showHome();
+
+        // Update the entry on form submission
+        const submitButton = document.querySelector("#dataForm button");
+        submitButton.textContent = "Update Entry";
+        submitButton.onclick = () => {
+            const updatedNumber = document.getElementById("number").value;
+            const updatedLiters = parseFloat(document.getElementById("liters").value);
+            const updatedFat = parseFloat(document.getElementById("fat").value);
+            const updatedAmount = Math.floor(updatedLiters * updatedFat * 80 / 10);
+
+            // Update the entry
+            dataEntries[index] = {
+                ...entry,
+                number: updatedNumber,
+                liters: updatedLiters,
+                fat: updatedFat,
+                amount: updatedAmount,
+            };
+            localStorage.setItem("dataEntries", JSON.stringify(dataEntries));
+            refreshTable();
+            document.getElementById("dataForm").reset();
+            submitButton.textContent = "Add Entry";
+            submitButton.onclick = addEntry;
+        };
+    }
+
+    // Delete entry logic
+    function deleteEntry(index) {
+        if (confirm("Are you sure you want to delete this entry?")) {
+            dataEntries.splice(index, 1);
+            localStorage.setItem("dataEntries", JSON.stringify(dataEntries));
+            refreshTable();
+        }
+    }
+
+    // Refresh the table to reflect changes
+    function refreshTable() {
+        tableBody.innerHTML = "";
+        dataEntries.forEach(appendRow);
+    }
+
+    // Initial setup
+    refreshTable();
+    </script>
+</body>
+</html>
